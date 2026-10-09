@@ -2,16 +2,26 @@ import asyncio
 import os
 import subprocess
 import sys
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
 
+import httpx
 import pytest
+import uvicorn
+from fastapi import FastAPI
 from redis.asyncio import Redis
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from app.db.models import Usage
+from app.db.repo import KeyIdentity
 from app.db.session import make_engine, make_sessionmaker
+from app.main import create_app
 from app.settings import Settings
+from app.state import GatewayState
+from tests.fakes import FakeUpstream
+from tests.helpers import new_key, new_user
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql://gateway:gateway@localhost:5434/gateway_test"
@@ -62,3 +72,75 @@ async def redis(settings: Settings) -> AsyncIterator[Redis]:
     await client.flushdb()
     yield client
     await client.aclose()
+
+
+@dataclass
+class LiveGateway:
+    url: str
+    app: FastAPI
+    upstream: FakeUpstream
+
+    @property
+    def state(self) -> GatewayState:
+        state: GatewayState = self.app.state.gw
+        return state
+
+    def client(self, key: str | None = None, **headers: str) -> httpx.AsyncClient:
+        merged = {**({"authorization": f"Bearer {key}"} if key else {}), **headers}
+        return httpx.AsyncClient(base_url=self.url, headers=merged, timeout=15)
+
+
+StartGateway = Callable[..., Awaitable[LiveGateway]]
+
+
+@pytest.fixture
+def upstream() -> FakeUpstream:
+    return FakeUpstream()
+
+
+@pytest.fixture
+async def start_gateway(
+    settings: Settings,
+    sessions: async_sessionmaker[AsyncSession],
+    redis: Redis,
+    upstream: FakeUpstream,
+) -> AsyncIterator[StartGateway]:
+    running: list[tuple[uvicorn.Server, asyncio.Task[None]]] = []
+
+    async def start(**overrides: object) -> LiveGateway:
+        app = create_app(
+            settings.model_copy(update=overrides), upstream_transport=httpx.MockTransport(upstream.handler)
+        )
+        server = uvicorn.Server(
+            uvicorn.Config(app, host="127.0.0.1", port=0, log_level="warning", lifespan="on")
+        )
+        task = asyncio.create_task(server.serve())
+        while not server.started:
+            if task.done():
+                task.result()
+            await asyncio.sleep(0.01)
+        port = server.servers[0].sockets[0].getsockname()[1]
+        running.append((server, task))
+        return LiveGateway(url=f"http://127.0.0.1:{port}", app=app, upstream=upstream)
+
+    yield start
+    for server, task in running:
+        server.should_exit = True
+        await task
+
+
+@pytest.fixture
+async def gateway(start_gateway: StartGateway) -> LiveGateway:
+    return await start_gateway()
+
+
+@pytest.fixture
+async def api_key(sessions: async_sessionmaker[AsyncSession]) -> tuple[str, KeyIdentity]:
+    user = await new_user(sessions)
+    return await new_key(sessions, user.id)
+
+
+async def usage_rows(gateway: LiveGateway) -> list[Usage]:
+    await gateway.state.tasks.drain()
+    async with gateway.state.sessions() as session:
+        return list((await session.execute(select(Usage).order_by(Usage.id))).scalars())

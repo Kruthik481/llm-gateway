@@ -43,3 +43,14 @@ def usage_row(identity: KeyIdentity, **overrides: Any) -> Usage:
     }
     values.update(overrides)
     return Usage(**values)
+
+
+def chat(**overrides: Any) -> dict[str, Any]:
+    body: dict[str, Any] = {
+        "model": "llama-3.3-70b",
+        "messages": [{"role": "user", "content": "What is 2+2?"}],
+        "temperature": 0.7,
+        "max_tokens": 64,
+    }
+    body.update(overrides)
+    return body
