@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --surface: #12151a;
+  --border: #23272f;
+  --text: #e6e8eb;
+  --muted: #8b93a1;
+  --accent: #7c9cff;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --danger: #f85149;
+
+  --chart-1: var(--accent);
+  --chart-2: #5b7bd6;
+  --chart-3: #3d5aa8;
+  --chart-4: #2a3f78;
+  --chart-5: #1c2a50;
+  --chart-background: transparent;
+  --chart-foreground: var(--muted);
+  --chart-foreground-muted: #5f6673;
+  --chart-line-primary: var(--accent);
+  --chart-line-secondary: #5b7bd6;
+  --chart-crosshair: var(--muted);
+  --chart-grid: rgb(230 232 235 / 0.06);
+  --chart-brush-border: var(--chart-grid);
+  --chart-indicator-color: var(--accent);
+  --chart-indicator-secondary-color: #5b7bd6;
+  --chart-segment-background: rgb(124 156 255 / 0.08);
+  --chart-segment-line: rgb(124 156 255 / 0.4);
+  --chart-tooltip-background: rgb(18 21 26 / 0.95);
+  --chart-tooltip-foreground: var(--text);
+  --chart-tooltip-muted: var(--muted);
+  --chart-marker-background: var(--surface);
+  --chart-marker-border: var(--border);
+  --chart-marker-foreground: var(--text);
+  --chart-marker-badge-background: var(--accent);
+  --chart-marker-badge-foreground: var(--bg);
+  --chart-label: var(--muted);
+  --chart-scale-01: #1c2a50;
+  --chart-scale-02: #2a3f78;
+  --chart-scale-03: #3d5aa8;
+  --chart-scale-04: #5b7bd6;
+  --chart-scale-05: #7c9cff;
+  --chart-scale-pattern-color: var(--bg);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--border);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
