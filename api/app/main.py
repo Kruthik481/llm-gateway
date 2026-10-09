@@ -5,6 +5,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.control.routes import router as control_router
 from app.http_errors import register_error_handlers
 from app.proxy.routes import router as proxy_router
 from app.settings import Settings
@@ -47,6 +48,7 @@ def create_app(
     )
     register_error_handlers(app)
     app.include_router(proxy_router)
+    app.include_router(control_router)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, bool]:
