@@ -1,0 +1,6 @@
+# USD per 1M tokens at each model's paid list price. The free tiers this demo uses bill $0,
+# so the dashboard shows these figures as "list-price cost". Strings keep Decimal exact.
+"cerebras/llama-3.3-70b": { input: "0.85", output: "1.20" }
+"cerebras/qwen-3-32b": { input: "0.40", output: "0.80" }
+"openrouter/meta-llama/llama-3.3-70b-instruct:free": { input: "0.13", output: "0.40" }
+"openrouter/qwen/qwen3-32b:free": { input: "0.10", output: "0.30" }

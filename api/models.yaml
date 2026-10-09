@@ -1,0 +1,8 @@
+# Gateway alias -> providers tried in order. Upstream ids are checked against each
+# provider's GET /models during Task 21; edit here (and pricing.yaml) if they differ.
+llama-3.3-70b:
+  - { provider: cerebras, model: llama-3.3-70b }
+  - { provider: openrouter, model: "meta-llama/llama-3.3-70b-instruct:free" }
+qwen-3-32b:
+  - { provider: cerebras, model: qwen-3-32b }
+  - { provider: openrouter, model: "qwen/qwen3-32b:free" }
