@@ -8,6 +8,7 @@ from app.core.errors import GatewayError
 from app.core.schemas import ChatRequest
 from app.db.repo import KeyIdentity
 from app.proxy.service import admit, complete_response
+from app.proxy.streaming import stream_response
 from app.state import GatewayState, get_state
 
 router = APIRouter(prefix="/v1", tags=["proxy"])
@@ -43,9 +44,7 @@ async def list_models(_: KeyDep, state: StateDep) -> dict[str, Any]:
 
 @router.post("/chat/completions")
 async def chat_completions(req: ChatRequest, request: Request, identity: KeyDep, state: StateDep) -> Response:
-    if req.stream:
-        raise GatewayError(
-            400, "invalid_request", "stream: streaming is not supported yet"
-        )  # replaced in Task 12
     adm = await admit(state, identity, req, request.headers, request_id_of(request))
+    if req.stream:
+        return await stream_response(state, adm, req)
     return await complete_response(state, adm, req)
