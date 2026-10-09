@@ -93,7 +93,7 @@ async def test_revoke_only_touches_your_own_active_key(sessions: Sessions) -> No
 async def test_list_keys_reports_last_use_and_requests_in_24h(sessions: Sessions) -> None:
     user = await new_user(sessions)
     _, used = await new_key(sessions, user.id, name="used")
-    _, idle = await new_key(sessions, user.id, name="idle")
+    await new_key(sessions, user.id, name="idle")
     async with sessions() as s, s.begin():
         s.add(usage_row(used))
         s.add(usage_row(used))
