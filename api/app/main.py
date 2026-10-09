@@ -6,7 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.control.routes import router as control_router
+from app.core.logging import configure_logging
 from app.http_errors import register_error_handlers
+from app.middleware import RequestIdMiddleware
+from app.ops import ops_router
 from app.proxy.routes import router as proxy_router
 from app.settings import Settings
 from app.state import build_state
@@ -27,6 +30,7 @@ EXPOSED_HEADERS = [
 def create_app(
     settings: Settings | None = None, *, upstream_transport: httpx.AsyncBaseTransport | None = None
 ) -> FastAPI:
+    configure_logging()
     resolved = settings or Settings()
 
     @asynccontextmanager
@@ -46,12 +50,10 @@ def create_app(
         allow_headers=ALLOWED_REQUEST_HEADERS,
         expose_headers=EXPOSED_HEADERS,
     )
+    app.add_middleware(RequestIdMiddleware)  # added last = outermost, so every response gets an id
     register_error_handlers(app)
     app.include_router(proxy_router)
     app.include_router(control_router)
-
-    @app.get("/healthz")
-    async def healthz() -> dict[str, bool]:
-        return {"ok": True}
+    app.include_router(ops_router)
 
     return app

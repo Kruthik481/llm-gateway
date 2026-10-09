@@ -192,6 +192,22 @@ def finalize(
             except Exception:
                 log.exception("cache_put_failed", request_id=adm.request_id)
         await state.ledger.write(record)
+        state.metrics.observe(record)
+        log.info(
+            "request",
+            request_id=adm.request_id,
+            key=adm.identity.prefix,
+            model=record.model,
+            provider=record.provider,
+            attempts=record.attempts,
+            cache="hit" if record.cache_hit else adm.cache_mode,
+            status=record.status,
+            error_code=record.error_code,
+            prompt_tokens=record.prompt_tokens,
+            completion_tokens=record.completion_tokens,
+            latency_ms=record.latency_ms,
+            ttft_ms=record.ttft_ms,
+        )
 
     state.tasks.spawn(run())
 

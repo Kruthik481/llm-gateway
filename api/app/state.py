@@ -12,6 +12,7 @@ from app.core.budget import Budget
 from app.core.cache import ResponseCache
 from app.core.catalog import PROVIDERS, Catalog
 from app.core.ledger import Ledger
+from app.core.metrics import Metrics
 from app.core.pricing import PriceBook
 from app.core.providers import PROVIDER_TIMEOUT, OpenAICompatProvider, Provider
 from app.core.ratelimit import RateLimiter
@@ -40,6 +41,7 @@ class GatewayState:
     router: Router
     ledger: Ledger
     tasks: TaskTracker
+    metrics: Metrics
 
     async def aclose(self) -> None:
         await self.tasks.drain()
@@ -93,6 +95,7 @@ def build_state(
         router=Router(providers, {name: CircuitBreaker() for name in providers}),
         ledger=Ledger(sessions),
         tasks=TaskTracker(),
+        metrics=Metrics(),
     )
 
 
