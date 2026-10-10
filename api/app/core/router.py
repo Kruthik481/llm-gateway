@@ -94,6 +94,9 @@ class Router:
             except ProviderError as err:
                 self._record_failure(target, err, attempts)
                 continue
+            except BaseException:
+                self._breakers[target.provider].release()
+                raise
             self._succeed(target, attempts)
             return target, completion, attempts
         raise AllProvidersFailed(attempts)
@@ -118,6 +121,10 @@ class Router:
                 await stream.aclose()
                 self._record_failure(target, err, attempts)
                 continue
+            except BaseException:
+                self._breakers[target.provider].release()
+                await stream.aclose()
+                raise
             self._succeed(target, attempts)
             return OpenedStream(target=target, attempts=attempts, first=first, rest=stream)
         raise AllProvidersFailed(attempts)

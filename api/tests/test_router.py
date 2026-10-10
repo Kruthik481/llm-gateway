@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest
 
@@ -27,14 +29,25 @@ def fake() -> FakeUpstream:
     return FakeUpstream()
 
 
-@pytest.fixture
-def router(fake: FakeUpstream) -> Router:
+def _providers(fake: FakeUpstream) -> dict[str, Provider]:
     client = httpx.AsyncClient(transport=httpx.MockTransport(fake.handler))
-    providers: dict[str, Provider] = {
+    return {
         "cerebras": OpenAICompatProvider("cerebras", "https://api.cerebras.ai/v1", "k", client),
         "openrouter": OpenAICompatProvider("openrouter", "https://openrouter.ai/api/v1", "k", client),
     }
-    return Router(providers, {name: CircuitBreaker() for name in providers})
+
+
+@pytest.fixture
+def router(fake: FakeUpstream) -> Router:
+    return Router(_providers(fake), {"cerebras": CircuitBreaker(), "openrouter": CircuitBreaker()})
+
+
+def _half_open_breaker() -> CircuitBreaker:
+    now = [0.0]
+    breaker = CircuitBreaker(threshold=1, cooldown_s=30, clock=lambda: now[0])
+    breaker.record_failure()
+    now[0] = 31.0
+    return breaker
 
 
 async def test_uses_the_first_healthy_target(router: Router, fake: FakeUpstream) -> None:
@@ -122,3 +135,17 @@ async def test_reply_without_content_still_counts_as_success(router: Router, fak
     fake.script("cerebras", Reply(text=""))
     _, completion, _ = await router.complete(TARGETS, REQ)
     assert completion.text == ""
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+async def test_a_cancelled_half_open_trial_frees_the_breaker(fake: FakeUpstream, streaming: bool) -> None:
+    breaker = _half_open_breaker()
+    router = Router(_providers(fake), {"cerebras": breaker, "openrouter": CircuitBreaker()})
+    fake.script("cerebras", StreamReply(delay_s=5) if streaming else Reply(delay_s=5))
+    call = router.open_stream(TARGETS[:1], REQ) if streaming else router.complete(TARGETS[:1], REQ)
+    task = asyncio.create_task(call)
+    await asyncio.sleep(0.05)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert breaker.allow()

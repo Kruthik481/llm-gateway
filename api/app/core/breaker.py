@@ -44,6 +44,10 @@ class CircuitBreaker:
         self._opened_at = None
         self._trial_in_flight = False
 
+    def release(self) -> None:
+        """Frees a half-open trial that ended without a verdict (e.g. the client went away)."""
+        self._trial_in_flight = False
+
     def record_failure(self) -> None:
         self._trial_in_flight = False
         if self._opened_at is not None:

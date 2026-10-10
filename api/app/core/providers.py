@@ -124,7 +124,7 @@ class OpenAICompatProvider:
                 prompt_tokens=usage.get("prompt_tokens"),
                 completion_tokens=usage.get("completion_tokens"),
             )
-        except (ValueError, KeyError, IndexError, TypeError) as exc:
+        except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
             raise ProviderError(self.name, "bad_response", retryable=True, detail=resp.text[:200]) from exc
 
     async def stream(self, body: dict[str, Any]) -> AsyncGenerator[StreamEvent]:
