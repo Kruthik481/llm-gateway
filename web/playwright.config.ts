@@ -21,7 +21,7 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 120_000,
       env: {
-        DATABASE_URL: 'postgresql://gateway:gateway@localhost:5434/gateway',
+        DATABASE_URL: 'postgresql://gateway:gateway@localhost:5434/gateway_e2e',
         REDIS_URL: 'redis://localhost:6380/1',
         CEREBRAS_API_KEY: 'fake',
         OPENROUTER_API_KEY: 'fake',
