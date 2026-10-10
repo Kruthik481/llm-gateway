@@ -7,7 +7,7 @@ from app.core.auth import parse_bearer
 from app.core.errors import GatewayError
 from app.core.schemas import ChatRequest
 from app.db.repo import KeyIdentity
-from app.proxy.service import admit, complete_response
+from app.proxy.service import admit, complete_response, finalize, make_record
 from app.proxy.streaming import stream_response
 from app.state import GatewayState, get_state
 
@@ -45,6 +45,13 @@ async def list_models(_: KeyDep, state: StateDep) -> dict[str, Any]:
 @router.post("/chat/completions")
 async def chat_completions(req: ChatRequest, request: Request, identity: KeyDep, state: StateDep) -> Response:
     adm = await admit(state, identity, req, request.headers, request_id_of(request))
-    if req.stream:
-        return await stream_response(state, adm, req)
-    return await complete_response(state, adm, req)
+    try:
+        if req.stream:
+            return await stream_response(state, adm, req)
+        return await complete_response(state, adm, req)
+    except GatewayError:
+        raise  # these paths have already settled the reservation
+    except Exception:
+        record = make_record(adm, req, status="error", error_code="internal_error", attempts=0)
+        finalize(state, adm, record, actual_tokens=0)
+        raise

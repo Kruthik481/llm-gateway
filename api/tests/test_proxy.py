@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from openai import AsyncOpenAI
+from redis.exceptions import TimeoutError as RedisTimeoutError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.db.repo import KeyIdentity
@@ -224,3 +225,20 @@ async def test_cors_allows_only_the_dashboard_origin(gateway: LiveGateway) -> No
     assert ok.status_code == 200
     assert ok.headers["access-control-allow-origin"] == "http://localhost:3000"
     assert bad.status_code == 400
+
+
+async def test_an_unexpected_failure_after_admission_refunds_the_budget(
+    gateway: LiveGateway, api_key: ApiKey, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    raw, identity = api_key
+
+    async def cache_down(_: str) -> None:
+        raise RedisTimeoutError("cache lookup timed out")
+
+    monkeypatch.setattr(gateway.state.cache, "get", cache_down)
+    async with gateway.client(raw) as c:
+        resp = await c.post(URL, json=chat(temperature=0))
+    assert resp.status_code == 503
+    [row] = await usage_rows(gateway)
+    assert (row.status, row.error_code) == ("error", "internal_error")
+    assert await gateway.state.budget.used_today(str(identity.user_id)) == 0
