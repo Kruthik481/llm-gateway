@@ -2,7 +2,9 @@
 
 An OpenAI-compatible LLM gateway: issued API keys, per-key rate limits, daily token budgets, a response cache and Groq → OpenRouter fallback, with usage and list-price cost tracked for every request.
 
-**Live demo:** coming soon
+**Live demo:** [dashboard](https://llm-gateway-five.vercel.app) (sign in with GitHub to create a key) · API at `https://llm-gateway-api-qh76.onrender.com/v1`
+
+Render's free tier sleeps when idle; the first request takes about 50s.
 
 ## Use it
 
@@ -11,7 +13,7 @@ Point any OpenAI SDK at the gateway. Only `base_url` and `api_key` change:
 ```python
 from openai import OpenAI
 
-client = OpenAI(base_url="https://<api>/v1", api_key="lgw_...")
+client = OpenAI(base_url="https://llm-gateway-api-qh76.onrender.com/v1", api_key="lgw_...")
 stream = client.chat.completions.create(
     model="gpt-oss-120b",
     messages=[{"role": "user", "content": "Hi"}],
