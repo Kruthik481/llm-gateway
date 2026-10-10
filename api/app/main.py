@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.control.routes import router as control_router
 from app.core.logging import configure_logging
 from app.http_errors import register_error_handlers
-from app.middleware import RequestIdMiddleware
+from app.middleware import BodyLimitMiddleware, RequestIdMiddleware
 from app.ops import ops_router
 from app.proxy.routes import router as proxy_router
 from app.settings import Settings
@@ -43,6 +43,7 @@ def create_app(
             await state.aclose()
 
     app = FastAPI(title="LLM Gateway", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(BodyLimitMiddleware)  # innermost, so its 413 still gets CORS headers
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[resolved.web_origin],

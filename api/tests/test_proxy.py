@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from decimal import Decimal
 
 import pytest
@@ -79,7 +80,7 @@ async def test_validation_errors_are_openai_shaped_400s(gateway: LiveGateway, ap
 async def test_oversized_prompt_is_rejected_before_budget(gateway: LiveGateway, api_key: ApiKey) -> None:
     raw, identity = api_key
     async with gateway.client(raw) as c:
-        resp = await c.post(URL, json=chat(messages=[{"role": "user", "content": "x" * 1_000_000}]))
+        resp = await c.post(URL, json=chat(messages=[{"role": "user", "content": "x" * 60_000}]))
     assert resp.status_code == 400
     assert "too long" in resp.json()["error"]["message"]
     assert await gateway.state.budget.used_today(str(identity.user_id)) == 0
@@ -242,3 +243,20 @@ async def test_an_unexpected_failure_after_admission_refunds_the_budget(
     [row] = await usage_rows(gateway)
     assert (row.status, row.error_code) == ("error", "internal_error")
     assert await gateway.state.budget.used_today(str(identity.user_id)) == 0
+
+
+@pytest.mark.parametrize("chunked", [False, True])
+async def test_oversized_bodies_are_rejected_before_parsing(gateway: LiveGateway, chunked: bool) -> None:
+    payload = b'{"model": "' + b"x" * 2_000_000 + b'"}'
+
+    async def pieces() -> AsyncIterator[bytes]:
+        for start in range(0, len(payload), 65_536):
+            yield payload[start : start + 65_536]
+
+    async with gateway.client() as c:
+        resp = await c.post(
+            URL, content=pieces() if chunked else payload, headers={"content-type": "application/json"}
+        )
+    assert resp.status_code == 413
+    assert resp.json()["error"]["code"] == "request_too_large"
+    assert "x-request-id" in resp.headers
