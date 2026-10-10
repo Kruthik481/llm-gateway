@@ -15,7 +15,7 @@ from app.core.providers import (
 from tests.fakes import ConnectFail, FakeUpstream, Reply, Status, StreamReply, Timeout
 
 BODY: dict[str, Any] = {
-    "model": "llama-3.3-70b",
+    "model": "gpt-oss-120b",
     "messages": [{"role": "user", "content": "hi"}],
     "max_tokens": 16,
 }
@@ -53,7 +53,7 @@ async def test_complete_sends_the_key_and_extra_headers(fake: FakeUpstream) -> N
     call = fake.calls_to("openrouter")[0]
     assert call.headers["authorization"] == "Bearer sk-or"
     assert call.headers["x-title"] == "LLM Gateway"
-    assert call.body["model"] == "llama-3.3-70b"
+    assert call.body["model"] == "gpt-oss-120b"
 
 
 async def test_missing_usage_is_reported_as_unknown(fake: FakeUpstream) -> None:

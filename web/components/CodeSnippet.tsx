@@ -5,7 +5,7 @@ export function CodeSnippet({ apiUrl }: { apiUrl: string }) {
 
 client = OpenAI(base_url="${apiUrl}/v1", api_key="lgw_...")
 stream = client.chat.completions.create(
-    model="llama-3.3-70b",
+    model="gpt-oss-120b",
     messages=[{"role": "user", "content": "Explain rate limiting in one line."}],
     stream=True,
 )

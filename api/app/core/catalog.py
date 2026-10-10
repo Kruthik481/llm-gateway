@@ -1,6 +1,7 @@
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -11,6 +12,7 @@ PROVIDERS = ("groq", "openrouter")
 class Target:
     provider: str
     model: str
+    params: tuple[tuple[str, Any], ...] = ()  # extra upstream body fields, e.g. reasoning_effort
 
 
 class Catalog:
@@ -26,7 +28,14 @@ class Catalog:
         for alias, entries in raw.items():
             if not entries:
                 raise ValueError(f"model alias {alias!r} has no targets")
-            targets = tuple(Target(provider=str(e["provider"]), model=str(e["model"])) for e in entries)
+            targets = tuple(
+                Target(
+                    provider=str(e["provider"]),
+                    model=str(e["model"]),
+                    params=tuple((e.get("params") or {}).items()),
+                )
+                for e in entries
+            )
             for target in targets:
                 if target.provider not in known_providers:
                     raise ValueError(f"model alias {alias!r} uses unknown provider {target.provider!r}")

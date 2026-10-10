@@ -70,7 +70,7 @@ async def test_sdk_stream_without_include_usage_never_sees_empty_choices(
 ) -> None:
     client = AsyncOpenAI(base_url=f"{gateway.url}/v1", api_key=api_key[0], max_retries=0)
     stream = await client.chat.completions.create(
-        model="llama-3.3-70b", messages=[{"role": "user", "content": "hi"}], stream=True
+        model="gpt-oss-120b", messages=[{"role": "user", "content": "hi"}], stream=True
     )
     pieces = [chunk.choices[0].delta.content or "" async for chunk in stream]
     assert "".join(pieces) == "Hello there!"
@@ -79,7 +79,7 @@ async def test_sdk_stream_without_include_usage_never_sees_empty_choices(
 async def test_sdk_stream_with_include_usage_reports_usage(gateway: LiveGateway, api_key: ApiKey) -> None:
     client = AsyncOpenAI(base_url=f"{gateway.url}/v1", api_key=api_key[0], max_retries=0)
     stream = await client.chat.completions.create(
-        model="llama-3.3-70b",
+        model="gpt-oss-120b",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
         stream_options={"include_usage": True},

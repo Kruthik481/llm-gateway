@@ -14,7 +14,7 @@ from app.core.schemas import ChatRequest
 
 def req(**overrides: object) -> ChatRequest:
     body: dict[str, object] = {
-        "model": "llama-3.3-70b",
+        "model": "gpt-oss-120b",
         "messages": [{"role": "user", "content": "What is 2+2?"}],
         "temperature": 0,
     }
@@ -22,7 +22,7 @@ def req(**overrides: object) -> ChatRequest:
     return ChatRequest.model_validate(body)
 
 
-VALUE = CachedCompletion("4", "stop", 9, 1, "groq", "llama-3.3-70b")
+VALUE = CachedCompletion("4", "stop", 9, 1, "groq", "gpt-oss-120b")
 
 
 def test_only_deterministic_unbypassed_requests_are_cacheable() -> None:
@@ -44,7 +44,7 @@ def test_key_changes_with_anything_that_changes_the_answer() -> None:
     base = cache_key("u1", req())
     assert cache_key("u1", req(max_tokens=10)) != base
     assert cache_key("u1", req(top_p=0.5)) != base
-    assert cache_key("u1", req(model="qwen-3-32b")) != base
+    assert cache_key("u1", req(model="gpt-oss-20b")) != base
     assert cache_key("u1", req(messages=[{"role": "user", "content": "What is 2+2? "}])) != base
 
 

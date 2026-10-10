@@ -13,7 +13,7 @@ from openai import OpenAI
 
 client = OpenAI(base_url="https://<api>/v1", api_key="lgw_...")
 stream = client.chat.completions.create(
-    model="llama-3.3-70b",
+    model="gpt-oss-120b",
     messages=[{"role": "user", "content": "Hi"}],
     stream=True,
 )

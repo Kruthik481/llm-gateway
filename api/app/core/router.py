@@ -50,7 +50,7 @@ def upstream_body(req: ChatRequest, target: Target) -> dict[str, Any]:
     }
     if req.top_p is not None:
         body["top_p"] = req.top_p
-    return body
+    return {**body, **dict(target.params)}
 
 
 class Router:

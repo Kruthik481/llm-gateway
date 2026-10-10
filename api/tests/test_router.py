@@ -11,12 +11,12 @@ from app.core.schemas import ChatRequest
 from tests.fakes import FakeUpstream, Reply, Status, StreamReply, Timeout
 
 TARGETS = (
-    Target("groq", "llama-3.3-70b"),
-    Target("openrouter", "meta-llama/llama-3.3-70b-instruct:free"),
+    Target("groq", "gpt-oss-120b"),
+    Target("openrouter", "nvidia/nemotron-3-super-120b-a12b:free"),
 )
 REQ = ChatRequest.model_validate(
     {
-        "model": "llama-3.3-70b",
+        "model": "gpt-oss-120b",
         "messages": [{"role": "user", "content": "hi"}],
         "max_tokens": 8,
         "temperature": 0,
@@ -56,7 +56,7 @@ async def test_uses_the_first_healthy_target(router: Router, fake: FakeUpstream)
     assert completion.text == "Hello there!"
     assert attempts == [Attempt("groq", "ok")]
     sent = fake.calls_to("groq")[0].body
-    assert sent["model"] == "llama-3.3-70b"
+    assert sent["model"] == "gpt-oss-120b"
     assert sent["temperature"] == 0
     assert sent["max_tokens"] == 8
 
@@ -66,7 +66,7 @@ async def test_falls_back_on_a_retryable_failure(router: Router, fake: FakeUpstr
     target, _, attempts = await router.complete(TARGETS, REQ)
     assert target.provider == "openrouter"
     assert attempts == [Attempt("groq", "429"), Attempt("openrouter", "ok")]
-    assert fake.calls_to("openrouter")[0].body["model"] == "meta-llama/llama-3.3-70b-instruct:free"
+    assert fake.calls_to("openrouter")[0].body["model"] == "nvidia/nemotron-3-super-120b-a12b:free"
 
 
 async def test_a_400_is_not_retried(router: Router, fake: FakeUpstream) -> None:
@@ -149,3 +149,11 @@ async def test_a_cancelled_half_open_trial_frees_the_breaker(fake: FakeUpstream,
     with pytest.raises(asyncio.CancelledError):
         await task
     assert breaker.allow()
+
+
+async def test_target_params_reach_the_upstream_body(fake: FakeUpstream) -> None:
+    router = Router(_providers(fake), {"groq": CircuitBreaker(), "openrouter": CircuitBreaker()})
+    target = Target("groq", "openai/gpt-oss-120b", (("reasoning_effort", "low"),))
+    await router.complete((target,), REQ)
+    [call] = fake.calls_to("groq")
+    assert call.body["reasoning_effort"] == "low"

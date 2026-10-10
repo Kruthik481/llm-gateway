@@ -130,7 +130,7 @@ async def test_usage_summary_fills_days_and_aggregates(
                 provider="openrouter",
                 attempts=2,
                 latency_ms=300,
-                model="qwen-3-32b",
+                model="gpt-oss-20b",
                 cost_usd=Decimal("0.00000100"),
             )
         )
@@ -150,7 +150,7 @@ async def test_usage_summary_fills_days_and_aggregates(
     assert summary["fallbacks"] == 1
     assert Decimal(summary["cache_saved_usd"]) == Decimal("0.00002000")
     assert {p["provider"]: p["requests"] for p in summary["providers"]} == {"groq": 2, "openrouter": 1}
-    assert {m["model"] for m in summary["cost_by_model"]} == {"llama-3.3-70b", "qwen-3-32b"}
+    assert {m["model"] for m in summary["cost_by_model"]} == {"gpt-oss-120b", "gpt-oss-20b"}
     assert summary["latency_ms"]["p50"] == 100
     assert summary["ttft_ms"]["p50"] == 40
     assert summary["budget"] == {"used": 0, "limit": 50_000}

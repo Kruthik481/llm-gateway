@@ -12,7 +12,7 @@ API_DIR = Path(__file__).resolve().parents[1]
 
 def test_catalog_loads_ordered_targets() -> None:
     catalog = Catalog.from_yaml(API_DIR / "models.yaml", PROVIDERS)
-    targets = catalog.targets("llama-3.3-70b")
+    targets = catalog.targets("gpt-oss-120b")
     assert targets is not None
     assert [t.provider for t in targets] == ["groq", "openrouter"]
     assert catalog.targets("gpt-5") is None
@@ -57,3 +57,17 @@ def test_unknown_models_cost_zero_and_warn_once() -> None:
 
 def test_target_is_hashable_value() -> None:
     assert Target("groq", "m") == Target("groq", "m")
+
+
+def test_catalog_carries_per_target_params(tmp_path: Path) -> None:
+    path = tmp_path / "models.yaml"
+    path.write_text(
+        "m:\n"
+        "  - { provider: groq, model: a, params: { reasoning_effort: low } }\n"
+        "  - { provider: openrouter, model: b }\n"
+    )
+    targets = Catalog.from_yaml(path, PROVIDERS).targets("m")
+    assert targets == (
+        Target("groq", "a", (("reasoning_effort", "low"),)),
+        Target("openrouter", "b"),
+    )

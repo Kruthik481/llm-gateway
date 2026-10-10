@@ -31,7 +31,7 @@ async def test_rejects_missing_and_unknown_keys(gateway: LiveGateway) -> None:
 async def test_lists_the_model_aliases(gateway: LiveGateway, api_key: ApiKey) -> None:
     async with gateway.client(api_key[0]) as c:
         resp = await c.get("/v1/models")
-    assert {m["id"] for m in resp.json()["data"]} == {"llama-3.3-70b", "qwen-3-32b"}
+    assert {m["id"] for m in resp.json()["data"]} == {"gpt-oss-120b", "gpt-oss-20b"}
 
 
 async def test_completes_and_records_usage(gateway: LiveGateway, api_key: ApiKey) -> None:
@@ -42,14 +42,14 @@ async def test_completes_and_records_usage(gateway: LiveGateway, api_key: ApiKey
     assert resp.status_code == 200
     body = resp.json()
     assert body["object"] == "chat.completion"
-    assert body["model"] == "llama-3.3-70b"
+    assert body["model"] == "gpt-oss-120b"
     assert body["choices"][0]["message"] == {"role": "assistant", "content": "4"}
     assert body["usage"] == {"prompt_tokens": 20, "completion_tokens": 1, "total_tokens": 21}
     assert body["x_gateway"] == {
         "provider": "groq",
         "cache": "bypass",
         "attempts": 1,
-        "cost_usd": "0.00001259",
+        "cost_usd": "0.00000360",
         "saved_usd": "0",
         "ttft_ms": None,
     }
@@ -58,7 +58,7 @@ async def test_completes_and_records_usage(gateway: LiveGateway, api_key: ApiKey
     assert resp.headers["x-ratelimit-remaining-requests"] == "19"
     [row] = await usage_rows(gateway)
     assert (row.status, row.provider, row.prompt_tokens, row.completion_tokens) == ("ok", "groq", 20, 1)
-    assert row.cost_usd == Decimal("0.00001259")
+    assert row.cost_usd == Decimal("0.00000360")
     assert await gateway.state.budget.used_today(str(identity.user_id)) == 21
 
 
@@ -201,10 +201,10 @@ async def test_simulated_outage_uses_the_fallback(gateway: LiveGateway, api_key:
 async def test_the_openai_sdk_works_unchanged(gateway: LiveGateway, api_key: ApiKey) -> None:
     client = AsyncOpenAI(base_url=f"{gateway.url}/v1", api_key=api_key[0], max_retries=0)
     resp = await client.chat.completions.create(
-        model="llama-3.3-70b", messages=[{"role": "user", "content": "hi"}]
+        model="gpt-oss-120b", messages=[{"role": "user", "content": "hi"}]
     )
     assert resp.choices[0].message.content == "Hello there!"
-    assert {m.id async for m in client.models.list()} == {"llama-3.3-70b", "qwen-3-32b"}
+    assert {m.id async for m in client.models.list()} == {"gpt-oss-120b", "gpt-oss-20b"}
 
 
 async def test_redis_outage_fails_closed(start_gateway: StartGateway, api_key: ApiKey) -> None:

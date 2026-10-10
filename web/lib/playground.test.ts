@@ -4,7 +4,7 @@ import { GatewayRequestError, runChat } from './playground';
 const INPUT = {
   apiUrl: 'https://gw.test',
   apiKey: ' lgw_abc ',
-  model: 'llama-3.3-70b',
+  model: 'gpt-oss-120b',
   temperature: 0.7,
   stream: true,
   prompt: 'hi',

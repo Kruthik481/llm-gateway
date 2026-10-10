@@ -35,9 +35,9 @@ async def test_round_trips_a_user_key_and_usage_row(sessions: async_sessionmaker
             Usage(
                 key_id=key.id,
                 user_id=user.id,
-                model="llama-3.3-70b",
+                model="gpt-oss-120b",
                 provider="groq",
-                upstream_model="llama-3.3-70b",
+                upstream_model="gpt-oss-120b",
                 prompt_tokens=10,
                 completion_tokens=5,
                 cost_usd=Decimal("0.00001450"),

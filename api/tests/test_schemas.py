@@ -5,7 +5,7 @@ from app.core.schemas import MAX_PROMPT_CHARS, ChatRequest
 
 
 def req(**overrides: object) -> ChatRequest:
-    body: dict[str, object] = {"model": "llama-3.3-70b", "messages": [{"role": "user", "content": "hi"}]}
+    body: dict[str, object] = {"model": "gpt-oss-120b", "messages": [{"role": "user", "content": "hi"}]}
     body.update(overrides)
     return ChatRequest.model_validate(body)
 
@@ -22,7 +22,7 @@ def test_defaults_follow_openai() -> None:
 
 
 def test_unknown_fields_are_ignored() -> None:
-    assert req(user="abc", seed=7).model == "llama-3.3-70b"
+    assert req(user="abc", seed=7).model == "gpt-oss-120b"
 
 
 @pytest.mark.parametrize(

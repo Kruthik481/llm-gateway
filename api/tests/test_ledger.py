@@ -16,9 +16,9 @@ def record(identity: KeyIdentity) -> UsageRecord:
     return UsageRecord(
         key_id=identity.key_id,
         user_id=identity.user_id,
-        model="llama-3.3-70b",
+        model="gpt-oss-120b",
         provider="groq",
-        upstream_model="llama-3.3-70b",
+        upstream_model="gpt-oss-120b",
         prompt_tokens=3,
         completion_tokens=2,
         cost_usd=Decimal("0.00000495"),

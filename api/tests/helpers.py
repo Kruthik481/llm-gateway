@@ -27,9 +27,9 @@ def usage_row(identity: KeyIdentity, **overrides: Any) -> Usage:
     values: dict[str, Any] = {
         "key_id": identity.key_id,
         "user_id": identity.user_id,
-        "model": "llama-3.3-70b",
+        "model": "gpt-oss-120b",
         "provider": "groq",
-        "upstream_model": "llama-3.3-70b",
+        "upstream_model": "gpt-oss-120b",
         "prompt_tokens": 10,
         "completion_tokens": 5,
         "cost_usd": Decimal("0.00001450"),
@@ -47,7 +47,7 @@ def usage_row(identity: KeyIdentity, **overrides: Any) -> Usage:
 
 def chat(**overrides: Any) -> dict[str, Any]:
     body: dict[str, Any] = {
-        "model": "llama-3.3-70b",
+        "model": "gpt-oss-120b",
         "messages": [{"role": "user", "content": "What is 2+2?"}],
         "temperature": 0.7,
         "max_tokens": 64,
