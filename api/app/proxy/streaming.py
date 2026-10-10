@@ -159,10 +159,12 @@ async def _relay(
                 progress.finish = event.reason
             else:
                 progress.usage = event
-            if time.monotonic() > deadline:
+            try:
+                async with asyncio.timeout(deadline - time.monotonic()):
+                    event = await anext(opened.rest, None)
+            except TimeoutError:
                 progress.error = "deadline_exceeded"
                 break
-            event = await anext(opened.rest, None)
         else:
             progress.status = "ok"
     except ProviderError as err:

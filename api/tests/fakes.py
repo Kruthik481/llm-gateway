@@ -27,6 +27,7 @@ class StreamReply:
     delay_s: float = 0.0
     fail_after: int | None = None  # drop the connection before piece N
     error_chunk_after: int | None = None  # send an in-band error event before piece N
+    keepalive_s: float = 0.0  # after the first piece, send only keep-alive comments for this long
 
 
 @dataclass
@@ -92,6 +93,12 @@ async def _sse(reply: StreamReply, request: httpx.Request) -> AsyncIterator[byte
         if reply.delay_s:
             await asyncio.sleep(reply.delay_s)
         yield event({"choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}]})
+        if i == 0 and reply.keepalive_s:
+            loop = asyncio.get_running_loop()
+            stalled_until = loop.time() + reply.keepalive_s
+            while loop.time() < stalled_until:
+                await asyncio.sleep(0.05)
+                yield b": keep-alive\n\n"
     yield event({"choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]})
     if reply.include_usage:
         completion = len(reply.pieces)

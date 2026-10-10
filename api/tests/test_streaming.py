@@ -153,6 +153,18 @@ async def test_deadline_cuts_a_long_stream(
     assert (row.status, row.error_code) == ("partial", "deadline_exceeded")
 
 
+async def test_deadline_holds_while_upstream_sends_only_keep_alives(
+    gateway: LiveGateway, api_key: ApiKey, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(streaming, "REQUEST_DEADLINE_S", 0.3)
+    gateway.upstream.script("cerebras", StreamReply(pieces=["x", "y"], keepalive_s=5))
+    async with asyncio.timeout(3):
+        _, events = await stream_chat(gateway, api_key[0])
+    assert "deadline_exceeded" in events[-2]["error"]["message"]
+    [row] = await usage_rows(gateway)
+    assert (row.status, row.error_code) == ("partial", "deadline_exceeded")
+
+
 async def test_cached_answers_replay_as_a_stream(gateway: LiveGateway, api_key: ApiKey) -> None:
     async with gateway.client(api_key[0]) as c:
         first = await c.post(URL, json=chat(temperature=0))
