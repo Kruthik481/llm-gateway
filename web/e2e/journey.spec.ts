@@ -16,9 +16,9 @@ test('sign in, create a key, stream in the playground, then see it in usage', as
   await page.getByLabel('Prompt').fill('Say hello');
   await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByTestId('output')).toHaveText('Hello from the fake model.');
-  await expect(page.getByTestId('meta')).toContainText('cerebras');
+  await expect(page.getByTestId('meta')).toContainText('groq');
 
-  await page.getByLabel('Simulate Cerebras outage').check();
+  await page.getByLabel('Simulate Groq outage').check();
   await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByTestId('meta')).toContainText('openrouter');
 

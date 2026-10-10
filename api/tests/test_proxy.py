@@ -36,7 +36,7 @@ async def test_lists_the_model_aliases(gateway: LiveGateway, api_key: ApiKey) ->
 
 async def test_completes_and_records_usage(gateway: LiveGateway, api_key: ApiKey) -> None:
     raw, identity = api_key
-    gateway.upstream.script("cerebras", Reply(text="4", prompt_tokens=20, completion_tokens=1))
+    gateway.upstream.script("groq", Reply(text="4", prompt_tokens=20, completion_tokens=1))
     async with gateway.client(raw) as c:
         resp = await c.post(URL, json=chat())
     assert resp.status_code == 200
@@ -46,19 +46,19 @@ async def test_completes_and_records_usage(gateway: LiveGateway, api_key: ApiKey
     assert body["choices"][0]["message"] == {"role": "assistant", "content": "4"}
     assert body["usage"] == {"prompt_tokens": 20, "completion_tokens": 1, "total_tokens": 21}
     assert body["x_gateway"] == {
-        "provider": "cerebras",
+        "provider": "groq",
         "cache": "bypass",
         "attempts": 1,
-        "cost_usd": "0.00001820",
+        "cost_usd": "0.00001259",
         "saved_usd": "0",
         "ttft_ms": None,
     }
-    assert resp.headers["x-gateway-provider"] == "cerebras"
+    assert resp.headers["x-gateway-provider"] == "groq"
     assert resp.headers["x-gateway-attempts"] == "1"
     assert resp.headers["x-ratelimit-remaining-requests"] == "19"
     [row] = await usage_rows(gateway)
-    assert (row.status, row.provider, row.prompt_tokens, row.completion_tokens) == ("ok", "cerebras", 20, 1)
-    assert row.cost_usd == Decimal("0.00001820")
+    assert (row.status, row.provider, row.prompt_tokens, row.completion_tokens) == ("ok", "groq", 20, 1)
+    assert row.cost_usd == Decimal("0.00001259")
     assert await gateway.state.budget.used_today(str(identity.user_id)) == 21
 
 
@@ -88,7 +88,7 @@ async def test_oversized_prompt_is_rejected_before_budget(gateway: LiveGateway, 
 
 
 async def test_falls_back_and_says_so(gateway: LiveGateway, api_key: ApiKey) -> None:
-    gateway.upstream.script("cerebras", Status(429))
+    gateway.upstream.script("groq", Status(429))
     async with gateway.client(api_key[0]) as c:
         resp = await c.post(URL, json=chat())
     assert resp.status_code == 200
@@ -102,20 +102,20 @@ async def test_all_providers_failing_is_a_502_with_a_full_refund(
     gateway: LiveGateway, api_key: ApiKey
 ) -> None:
     raw, identity = api_key
-    gateway.upstream.script("cerebras", Timeout())
+    gateway.upstream.script("groq", Timeout())
     gateway.upstream.script("openrouter", Status(503))
     async with gateway.client(raw) as c:
         resp = await c.post(URL, json=chat())
     assert resp.status_code == 502
     assert resp.json()["error"]["code"] == "upstream_error"
-    assert "cerebras:timeout, openrouter:503" in resp.json()["error"]["message"]
+    assert "groq:timeout, openrouter:503" in resp.json()["error"]["message"]
     [row] = await usage_rows(gateway)
     assert (row.status, row.error_code, row.attempts) == ("error", "upstream_error", 2)
     assert await gateway.state.budget.used_today(str(identity.user_id)) == 0
 
 
 async def test_upstream_400_passes_through_without_fallback(gateway: LiveGateway, api_key: ApiKey) -> None:
-    gateway.upstream.script("cerebras", Status(400, "prompt is malformed"))
+    gateway.upstream.script("groq", Status(400, "prompt is malformed"))
     async with gateway.client(api_key[0]) as c:
         resp = await c.post(URL, json=chat())
     assert resp.status_code == 400
@@ -128,7 +128,7 @@ async def test_deadline_becomes_a_504(
 ) -> None:
     raw, identity = api_key
     monkeypatch.setattr(service, "REQUEST_DEADLINE_S", 0.2)
-    gateway.upstream.script("cerebras", Reply(delay_s=2))
+    gateway.upstream.script("groq", Reply(delay_s=2))
     async with gateway.client(raw) as c:
         resp = await c.post(URL, json=chat())
     assert resp.status_code == 504
@@ -192,10 +192,10 @@ async def test_daily_budget_is_a_429(start_gateway: StartGateway, api_key: ApiKe
 
 
 async def test_simulated_outage_uses_the_fallback(gateway: LiveGateway, api_key: ApiKey) -> None:
-    async with gateway.client(api_key[0], **{"x-gateway-debug-fail": "cerebras"}) as c:
+    async with gateway.client(api_key[0], **{"x-gateway-debug-fail": "groq"}) as c:
         resp = await c.post(URL, json=chat())
     assert resp.headers["x-gateway-provider"] == "openrouter"
-    assert gateway.upstream.calls_to("cerebras") == []
+    assert gateway.upstream.calls_to("groq") == []
 
 
 async def test_the_openai_sdk_works_unchanged(gateway: LiveGateway, api_key: ApiKey) -> None:

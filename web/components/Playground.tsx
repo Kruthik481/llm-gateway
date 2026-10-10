@@ -122,7 +122,7 @@ export function Playground({ apiUrl }: { apiUrl: string }) {
           </label>
           <label className="inline-flex items-center gap-2">
             <input type="checkbox" checked={simulateOutage} onChange={(e) => setSimulateOutage(e.target.checked)} />
-            Simulate Cerebras outage
+            Simulate Groq outage
           </label>
         </div>
       </div>

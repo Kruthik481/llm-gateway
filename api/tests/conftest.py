@@ -36,7 +36,7 @@ def settings() -> Settings:
         _env_file=None,
         database_url=TEST_DATABASE_URL,
         redis_url=TEST_REDIS_URL,
-        cerebras_api_key="csk-test",
+        groq_api_key="csk-test",
         openrouter_api_key="sk-or-test",
         control_jwt_secret="test-control-secret-0123456789abcdef",
         metrics_token="test-metrics-token",

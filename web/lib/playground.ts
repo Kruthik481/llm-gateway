@@ -34,7 +34,7 @@ export async function runChat(
     authorization: `Bearer ${input.apiKey.trim()}`,
     'content-type': 'application/json',
   };
-  if (input.simulateOutage) headers['x-gateway-debug-fail'] = 'cerebras';
+  if (input.simulateOutage) headers['x-gateway-debug-fail'] = 'groq';
   const res = await fetch(`${input.apiUrl}/v1/chat/completions`, {
     method: 'POST',
     headers,

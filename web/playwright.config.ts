@@ -23,9 +23,9 @@ export default defineConfig({
       env: {
         DATABASE_URL: 'postgresql://gateway:gateway@localhost:5434/gateway_e2e',
         REDIS_URL: 'redis://localhost:6380/1',
-        CEREBRAS_API_KEY: 'fake',
+        GROQ_API_KEY: 'fake',
         OPENROUTER_API_KEY: 'fake',
-        CEREBRAS_BASE_URL: 'http://localhost:4900/cerebras/v1',
+        GROQ_BASE_URL: 'http://localhost:4900/groq/v1',
         OPENROUTER_BASE_URL: 'http://localhost:4900/openrouter/v1',
         CONTROL_JWT_SECRET: CONTROL_SECRET,
         METRICS_TOKEN: 'e2e-metrics-token',

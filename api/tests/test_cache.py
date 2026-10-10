@@ -22,7 +22,7 @@ def req(**overrides: object) -> ChatRequest:
     return ChatRequest.model_validate(body)
 
 
-VALUE = CachedCompletion("4", "stop", 9, 1, "cerebras", "llama-3.3-70b")
+VALUE = CachedCompletion("4", "stop", 9, 1, "groq", "llama-3.3-70b")
 
 
 def test_only_deterministic_unbypassed_requests_are_cacheable() -> None:
@@ -59,7 +59,7 @@ async def test_round_trip_with_a_day_ttl(redis: Redis) -> None:
 
 async def test_oversized_answers_are_not_stored(redis: Redis) -> None:
     cache = ResponseCache(redis)
-    big = CachedCompletion("x" * MAX_CACHED_BYTES, "stop", 1, 1, "cerebras", "m")
+    big = CachedCompletion("x" * MAX_CACHED_BYTES, "stop", 1, 1, "groq", "m")
     assert not await cache.put("cache:u1:big", big)
     assert await redis.exists("cache:u1:big") == 0
 

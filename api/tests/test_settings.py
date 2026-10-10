@@ -6,7 +6,7 @@ from app.settings import Settings
 REQUIRED = {
     "database_url": "postgresql://u:p@localhost:5434/db",
     "redis_url": "redis://localhost:6380/0",
-    "cerebras_api_key": "csk-test",
+    "groq_api_key": "csk-test",
     "openrouter_api_key": "sk-or-test",
     "control_jwt_secret": "s" * 32,
     "metrics_token": "m" * 16,
@@ -25,7 +25,7 @@ def test_defaults_match_the_spec() -> None:
     assert s.rate_limit_per_minute == 20
     assert s.user_daily_tokens == 50_000
     assert s.global_daily_tokens == 1_000_000
-    assert s.cerebras_base_url == "https://api.cerebras.ai/v1"
+    assert s.groq_base_url == "https://api.groq.com/openai/v1"
     assert s.openrouter_base_url == "https://openrouter.ai/api/v1"
 
 

@@ -149,7 +149,7 @@ async def test_usage_summary_fills_days_and_aggregates(
     assert sum(d["requests"] for d in summary["days"]) == 4
     assert summary["fallbacks"] == 1
     assert Decimal(summary["cache_saved_usd"]) == Decimal("0.00002000")
-    assert {p["provider"]: p["requests"] for p in summary["providers"]} == {"cerebras": 2, "openrouter": 1}
+    assert {p["provider"]: p["requests"] for p in summary["providers"]} == {"groq": 2, "openrouter": 1}
     assert {m["model"] for m in summary["cost_by_model"]} == {"llama-3.3-70b", "qwen-3-32b"}
     assert summary["latency_ms"]["p50"] == 100
     assert summary["ttft_ms"]["p50"] == 40

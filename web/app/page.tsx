@@ -16,7 +16,7 @@ export default async function Home() {
       </h1>
       <p className="mt-4 max-w-2xl text-muted">
         Issued API keys, per-key rate limits, daily token budgets, a response cache and automatic fallback from
-        Cerebras to OpenRouter, with usage and list-price cost tracked for every request.
+        Groq to OpenRouter, with usage and list-price cost tracked for every request.
       </p>
       <div className="mt-8 flex gap-3">
         {session?.user ? (

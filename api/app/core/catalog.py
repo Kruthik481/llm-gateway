@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-PROVIDERS = ("cerebras", "openrouter")
+PROVIDERS = ("groq", "openrouter")
 
 
 @dataclass(frozen=True)

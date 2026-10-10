@@ -36,7 +36,7 @@ async def test_round_trips_a_user_key_and_usage_row(sessions: async_sessionmaker
                 key_id=key.id,
                 user_id=user.id,
                 model="llama-3.3-70b",
-                provider="cerebras",
+                provider="groq",
                 upstream_model="llama-3.3-70b",
                 prompt_tokens=10,
                 completion_tokens=5,

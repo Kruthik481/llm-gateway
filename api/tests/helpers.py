@@ -28,7 +28,7 @@ def usage_row(identity: KeyIdentity, **overrides: Any) -> Usage:
         "key_id": identity.key_id,
         "user_id": identity.user_id,
         "model": "llama-3.3-70b",
-        "provider": "cerebras",
+        "provider": "groq",
         "upstream_model": "llama-3.3-70b",
         "prompt_tokens": 10,
         "completion_tokens": 5,

@@ -44,12 +44,12 @@ async def test_streams_text_then_a_final_chunk_with_gateway_meta(
 ) -> None:
     resp, events = await stream_chat(gateway, api_key[0])
     assert resp.headers["content-type"].startswith("text/event-stream")
-    assert resp.headers["x-gateway-provider"] == "cerebras"
+    assert resp.headers["x-gateway-provider"] == "groq"
     assert text_of(events) == "Hello there!"
     assert events[-1] == "[DONE]"
     final = events[-2]
     assert final["choices"][0]["finish_reason"] == "stop"
-    assert final["x_gateway"]["provider"] == "cerebras"
+    assert final["x_gateway"]["provider"] == "groq"
     assert final["x_gateway"]["ttft_ms"] >= 0
     assert all(e["choices"] for e in events[:-1]), "no usage chunk unless include_usage was requested"
     [row] = await usage_rows(gateway)
@@ -91,7 +91,7 @@ async def test_sdk_stream_with_include_usage_reports_usage(gateway: LiveGateway,
 
 
 async def test_falls_back_before_the_first_token(gateway: LiveGateway, api_key: ApiKey) -> None:
-    gateway.upstream.script("cerebras", Timeout())
+    gateway.upstream.script("groq", Timeout())
     resp, events = await stream_chat(gateway, api_key[0])
     assert resp.headers["x-gateway-provider"] == "openrouter"
     assert resp.headers["x-gateway-attempts"] == "2"
@@ -101,7 +101,7 @@ async def test_falls_back_before_the_first_token(gateway: LiveGateway, api_key: 
 async def test_all_providers_failing_is_a_json_502_not_a_stream(
     gateway: LiveGateway, api_key: ApiKey
 ) -> None:
-    gateway.upstream.script("cerebras", Timeout())
+    gateway.upstream.script("groq", Timeout())
     gateway.upstream.script("openrouter", Timeout())
     async with gateway.client(api_key[0]) as c:
         resp = await c.post(URL, json=chat(stream=True))
@@ -110,7 +110,7 @@ async def test_all_providers_failing_is_a_json_502_not_a_stream(
 
 
 async def test_midstream_failure_ends_with_an_error_event(gateway: LiveGateway, api_key: ApiKey) -> None:
-    gateway.upstream.script("cerebras", StreamReply(pieces=["a", "b", "c"], fail_after=2))
+    gateway.upstream.script("groq", StreamReply(pieces=["a", "b", "c"], fail_after=2))
     _, events = await stream_chat(gateway, api_key[0])
     assert text_of(events) == "ab"
     assert events[-2]["error"]["code"] == "upstream_error"
@@ -122,7 +122,7 @@ async def test_midstream_failure_ends_with_an_error_event(gateway: LiveGateway, 
 
 async def test_client_disconnect_records_partial_usage(gateway: LiveGateway, api_key: ApiKey) -> None:
     raw, identity = api_key
-    gateway.upstream.script("cerebras", StreamReply(pieces=["word "] * 30, delay_s=0.05))
+    gateway.upstream.script("groq", StreamReply(pieces=["word "] * 30, delay_s=0.05))
     async with gateway.client(raw) as c, c.stream("POST", URL, json=chat(stream=True)) as resp:
         seen = 0
         async for line in resp.aiter_lines():
@@ -146,7 +146,7 @@ async def test_deadline_cuts_a_long_stream(
     gateway: LiveGateway, api_key: ApiKey, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(streaming, "REQUEST_DEADLINE_S", 0.3)
-    gateway.upstream.script("cerebras", StreamReply(pieces=["x"] * 40, delay_s=0.05))
+    gateway.upstream.script("groq", StreamReply(pieces=["x"] * 40, delay_s=0.05))
     _, events = await stream_chat(gateway, api_key[0])
     assert "deadline_exceeded" in events[-2]["error"]["message"]
     [row] = await usage_rows(gateway)
@@ -157,7 +157,7 @@ async def test_deadline_holds_while_upstream_sends_only_keep_alives(
     gateway: LiveGateway, api_key: ApiKey, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(streaming, "REQUEST_DEADLINE_S", 0.3)
-    gateway.upstream.script("cerebras", StreamReply(pieces=["x", "y"], keepalive_s=5))
+    gateway.upstream.script("groq", StreamReply(pieces=["x", "y"], keepalive_s=5))
     async with asyncio.timeout(3):
         _, events = await stream_chat(gateway, api_key[0])
     assert "deadline_exceeded" in events[-2]["error"]["message"]

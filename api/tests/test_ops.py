@@ -32,7 +32,7 @@ async def test_each_request_logs_one_line_without_prompt_text(gateway: LiveGatew
             await c.post("/v1/chat/completions", json=chat())
         await usage_rows(gateway)
     [line] = [entry for entry in logs if entry["event"] == "request"]
-    assert line["provider"] == "cerebras"
+    assert line["provider"] == "groq"
     assert line["key"] == api_key[1].prefix
     assert line["status"] == "ok"
     assert "What is 2+2?" not in str(line)
@@ -47,8 +47,8 @@ async def test_metrics_need_the_token(gateway: LiveGateway, settings: Settings, 
         allowed = await c.get("/metrics", headers={"authorization": f"Bearer {settings.metrics_token}"})
     assert denied.status_code == 401
     assert allowed.status_code == 200
-    assert 'gateway_requests_total{cache="miss",provider="cerebras",status="ok"} 1.0' in allowed.text
-    assert 'gateway_circuit_open{provider="cerebras"} 0.0' in allowed.text
+    assert 'gateway_requests_total{cache="miss",provider="groq",status="ok"} 1.0' in allowed.text
+    assert 'gateway_circuit_open{provider="groq"} 0.0' in allowed.text
 
 
 async def test_readyz_reports_dependencies(gateway: LiveGateway, start_gateway: StartGateway) -> None:

@@ -52,9 +52,7 @@ class GatewayState:
 
 def build_providers(settings: Settings, http: httpx.AsyncClient) -> dict[str, Provider]:
     return {
-        "cerebras": OpenAICompatProvider(
-            "cerebras", settings.cerebras_base_url, settings.cerebras_api_key, http
-        ),
+        "groq": OpenAICompatProvider("groq", settings.groq_base_url, settings.groq_api_key, http),
         "openrouter": OpenAICompatProvider(
             "openrouter",
             settings.openrouter_base_url,

@@ -91,7 +91,7 @@ def _parse_line(provider: str, line: str) -> list[StreamEvent] | None:
 
 
 class OpenAICompatProvider:
-    """Any provider speaking OpenAI's /chat/completions (Cerebras, OpenRouter)."""
+    """Any provider speaking OpenAI's /chat/completions (Groq, OpenRouter)."""
 
     def __init__(
         self,

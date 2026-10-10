@@ -7,7 +7,7 @@ from typing import Any
 
 import httpx
 
-HOSTS = {"api.cerebras.ai": "cerebras", "openrouter.ai": "openrouter"}
+HOSTS = {"api.groq.com": "groq", "openrouter.ai": "openrouter"}
 
 
 @dataclass
@@ -116,7 +116,7 @@ async def _sse(reply: StreamReply, request: httpx.Request) -> AsyncIterator[byte
 
 
 class FakeUpstream:
-    """Scripted stand-in for Cerebras and OpenRouter, plugged in via httpx.MockTransport."""
+    """Scripted stand-in for Groq and OpenRouter, plugged in via httpx.MockTransport."""
 
     def __init__(self) -> None:
         self._scripts: dict[str, list[Behavior]] = defaultdict(list)

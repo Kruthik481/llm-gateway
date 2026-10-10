@@ -40,7 +40,7 @@ describe('runChat', () => {
     expect(seen).toEqual(['Hel', 'Hello']);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('https://gw.test/v1/chat/completions');
-    expect(init.headers).toMatchObject({ authorization: 'Bearer lgw_abc', 'x-gateway-debug-fail': 'cerebras' });
+    expect(init.headers).toMatchObject({ authorization: 'Bearer lgw_abc', 'x-gateway-debug-fail': 'groq' });
     expect(JSON.parse(init.body)).toMatchObject({ stream: true, stream_options: { include_usage: true } });
   });
 
@@ -67,10 +67,10 @@ describe('runChat', () => {
   });
 
   it('handles non-streaming answers', async () => {
-    const body = { choices: [{ message: { content: 'Hi!' } }], x_gateway: { provider: 'cerebras' } };
+    const body = { choices: [{ message: { content: 'Hi!' } }], x_gateway: { provider: 'groq' } };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 })));
     const result = await runChat({ ...INPUT, stream: false }, () => {});
     expect(result.text).toBe('Hi!');
-    expect(result.meta).toEqual({ provider: 'cerebras' });
+    expect(result.meta).toEqual({ provider: 'groq' });
   });
 });
